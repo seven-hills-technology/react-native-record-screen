@@ -37,9 +37,15 @@
     "HBRecorder",
     "screen recorder"
   ],
-  "repository": "https://github.com/yutasuzuki/react-native-record-screen",
-  "author": "Yuta Suzuki <yutasuzuki.r@gmail.com> (https://github.com/yutasuzuki)",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adeshpandey/react-native-record-screen.git",
+    "baseUrl": "https://github.com/adeshpandey/react-native-record-screen"
+  },
+  "author": {
+    "name": "Adesh Pandey",
+    "email": "adesh.pandey10@gmail.com"
+  },  "license": "MIT",
   "bugs": {
     "url": "https://github.com/yutasuzuki/react-native-record-screen/issues"
   },
