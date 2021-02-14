@@ -19,12 +19,15 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.hbisoft.hbrecorder.HBRecorder;
 import com.hbisoft.hbrecorder.HBRecorderListener;
 
 import java.io.File;
 import java.io.IOException;
+
+import static java.lang.Math.ceil;
 
 public class RecordScreenModule extends ReactContextBaseJavaModule implements HBRecorderListener {
 
@@ -35,7 +38,7 @@ public class RecordScreenModule extends ReactContextBaseJavaModule implements HB
     private int SCREEN_RECORD_REQUEST_CODE = 1000;
     private Promise startPromise;
     private Promise stopPromise;
-    
+
     public RecordScreenModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
@@ -63,7 +66,10 @@ public class RecordScreenModule extends ReactContextBaseJavaModule implements HB
         return "RecordScreen";
     }
 
-    public void setup(Boolean mic) {
+    public void setup(ReadableMap readableMap) {
+//        int screenWidth = (readableMap.hasKey("width")) ? (int)ceil(readableMap.getDouble("width")) : 0;
+//        int screenHeight = (readableMap.hasKey("height")) ? (int)ceil(readableMap.getDouble("height")) : 0;
+        boolean mic =  (readableMap.hasKey("mic")) ? (boolean)readableMap.getBoolean("mic") : true;
         // TODO: Implement some actually useful functionality
 //        callback.invoke("Received numberArgument: " + numberArgument + " stringArgument: " + stringArgument);
         hbRecorder= new HBRecorder(reactContext,this);
@@ -87,7 +93,6 @@ public class RecordScreenModule extends ReactContextBaseJavaModule implements HB
 
     @ReactMethod
     public void startRecording(Promise promise){
-        setup(false);
         startPromise = promise;
         try {
             startRecordingScreen();
