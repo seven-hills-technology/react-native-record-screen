@@ -65,7 +65,8 @@ public class RecordScreenModule extends ReactContextBaseJavaModule implements HB
     public String getName() {
         return "RecordScreen";
     }
-
+    
+    @ReactMethod
     public void setup(ReadableMap readableMap) {
 //        int screenWidth = (readableMap.hasKey("width")) ? (int)ceil(readableMap.getDouble("width")) : 0;
 //        int screenHeight = (readableMap.hasKey("height")) ? (int)ceil(readableMap.getDouble("height")) : 0;
