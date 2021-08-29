@@ -58,6 +58,7 @@ RCT_EXPORT_METHOD(setup: (NSDictionary *)config)
     self.screenWidth = [RCTConvert int: config[@"width"]];
     self.screenHeight = [RCTConvert int: config[@"height"]];
     self.enableMic = [RCTConvert BOOL: config[@"mic"]];
+    self.micDisabled = true;
 }
 
 RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte:(RCTPromiseRejectBlock)reject)
@@ -72,7 +73,8 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     NSArray *pathDocuments = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *outputURL = pathDocuments[0];
 
-    NSString *videoOutPath = [[outputURL stringByAppendingPathComponent:[NSString stringWithFormat:@"%u", arc4random() % 1000]] stringByAppendingPathExtension:@"mp4"];
+    NSString *videoOutPath = [[outputURL stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]] stringByAppendingPathExtension:@"mp4"];
+    
     
     NSError *error;
     self.writer = [AVAssetWriter assetWriterWithURL:[NSURL fileURLWithPath:videoOutPath] fileType:AVFileTypeMPEG4 error:&error];
@@ -151,6 +153,9 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
                                         }
                                         break;
                                     case RPSampleBufferTypeAudioMic:
+                                        if (self.micDisabled) {
+                                            break;
+                                        }
                                         if (self.micInput.isReadyForMoreMediaData) {
                                             if(self.enableMic){
                                                 [self.micInput appendSampleBuffer:sampleBuffer];
@@ -193,12 +198,15 @@ RCT_REMAP_METHOD(stopRecording, resolver:(RCTPromiseResolveBlock)resolve rejecte
                     [self.micInput markAsFinished];
                     [self.videoInput markAsFinished];
                     [self.writer finishWritingWithCompletionHandler:^{
-                        
+
+                        printf([[NSFileManager defaultManager] fileExistsAtPath:self.writer.outputURL.path] ? "file exists" : "file doesn't exist");
+
                         NSDictionary *result = [NSDictionary dictionaryWithObject:self.writer.outputURL.absoluteString forKey:@"outputURL"];
-                        resolve([self successResponse:result]);
                         
-                        //                    UISaveVideoAtPathToSavedPhotosAlbum(self.writer.outputURL.absoluteString, nil, nil, nil);
+                        
+                        UISaveVideoAtPathToSavedPhotosAlbum(self.writer.outputURL.absoluteString, nil, nil, nil);
                         NSLog(@"finishWritingWithCompletionHandler: Recording stopped successfully. Cleaning up... %@", result);
+                        resolve([self successResponse:result]);
                         self.audioInput = nil;
                         self.micInput = nil;
                         self.videoInput = nil;
@@ -222,6 +230,13 @@ RCT_REMAP_METHOD(clean,
     NSString *path = pathDocuments[0];
     [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
     resolve(@"cleaned");
+}
+
+RCT_REMAP_METHOD(toggleMic,
+                 toggleMicResolve: (RCTPromiseResolveBlock) resolve
+                 toggleMicReject: (RCTPromiseRejectBlock) reject)
+{
+    self.micDisabled  = !self.micDisabled;
 }
 
 @end
