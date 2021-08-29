@@ -29,6 +29,7 @@ type RecordScreenType = {
   ): Promise<RecordingStartResponse>;
   stopRecording(): Promise<RecordingResponse>;
   clean(): Promise<string>;
+  toggleMic(): Promise<void>;
 };
 
 const { RecordScreen } = NativeModules;
@@ -69,6 +70,12 @@ class ReactNativeRecordScreenClass {
   clean(): Promise<string> {
     return new Promise((resolve, reject) => {
       RS.clean().then(resolve).catch(reject);
+    });
+  }
+  
+  toggleMic(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      RS.toggleMic().then(resolve).catch(reject);
     });
   }
 }
