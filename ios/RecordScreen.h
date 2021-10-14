@@ -11,7 +11,7 @@
     @property (assign, nonatomic) int screenWidth;
     @property (assign, nonatomic) int screenHeight;
     @property (assign, nonatomic) BOOL enableMic;
-    @property (strong, nonatomic) BOOL micDisabled;
+    @property (assign, nonatomic) BOOL micDisabled;
 
     @property (nonatomic) AVAssetWriter *writer;
     @property BOOL encounteredFirstBuffer;
