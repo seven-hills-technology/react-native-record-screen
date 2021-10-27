@@ -88,7 +88,7 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     self.audioInput = [[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio outputSettings:@{ AVFormatIDKey: @(kAudioFormatMPEG4AAC), AVSampleRateKey: @(44100),  AVChannelLayoutKey: [NSData dataWithBytes: &acl length: sizeof( acl ) ], AVEncoderBitRateKey: @(64000)}];
     self.micInput = [[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio outputSettings:@{ AVFormatIDKey: @(kAudioFormatMPEG4AAC), AVSampleRateKey: @(44100),  AVChannelLayoutKey: [NSData dataWithBytes: &acl length: sizeof( acl ) ], AVEncoderBitRateKey: @(64000)}];
     
-    self.audioInput.preferredVolume = 0.0;
+    self.audioInput.preferredVolume = 0.35;
     self.micInput.preferredVolume = 0.0;
     
     NSDictionary *compressionProperties = @{AVVideoProfileLevelKey         : AVVideoProfileLevelH264HighAutoLevel,
@@ -110,8 +110,8 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
         // Fallback on earlier versions
     }
     
-    [self.writer addInput:self.audioInput];
     [self.writer addInput:self.micInput];
+    [self.writer addInput:self.audioInput];
     [self.writer addInput:self.videoInput];
     [self.videoInput setMediaTimeScale:60];
     [self.writer setMovieTimeScale:60];
