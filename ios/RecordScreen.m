@@ -84,12 +84,12 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     }
     
     AudioChannelLayout acl = { 0 };
-    acl.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
+    acl.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo;
     self.audioInput = [[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio outputSettings:@{ AVFormatIDKey: @(kAudioFormatMPEG4AAC), AVSampleRateKey: @(44100),  AVChannelLayoutKey: [NSData dataWithBytes: &acl length: sizeof( acl ) ], AVEncoderBitRateKey: @(64000)}];
     self.micInput = [[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio outputSettings:@{ AVFormatIDKey: @(kAudioFormatMPEG4AAC), AVSampleRateKey: @(44100),  AVChannelLayoutKey: [NSData dataWithBytes: &acl length: sizeof( acl ) ], AVEncoderBitRateKey: @(64000)}];
     
-    self.audioInput.preferredVolume = 0.35;
-    self.micInput.preferredVolume = 0.0;
+    self.audioInput.preferredVolume = 0.2;
+    self.micInput.preferredVolume = 1.0;
     
     NSDictionary *compressionProperties = @{AVVideoProfileLevelKey         : AVVideoProfileLevelH264HighAutoLevel,
                                             AVVideoH264EntropyModeKey      : AVVideoH264EntropyModeCABAC,
@@ -145,22 +145,16 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
                                         break;
                                     case RPSampleBufferTypeAudioApp:
                                         if (self.audioInput.isReadyForMoreMediaData) {
-                                            if(self.enableMic){
-                                                [self.audioInput appendSampleBuffer:sampleBuffer];
-                                            } else {
-                                                [self muteAudioInBuffer:sampleBuffer];
-                                            }
+                                            [self.audioInput appendSampleBuffer:sampleBuffer];
                                         }
                                         break;
                                     case RPSampleBufferTypeAudioMic:
-                                        if (self.micDisabled) {
-                                            break;
-                                        }
                                         if (self.micInput.isReadyForMoreMediaData) {
-                                            if(self.enableMic){
+                                            if(self.enableMic && !self.micDisabled){
                                                 [self.micInput appendSampleBuffer:sampleBuffer];
                                             } else {
                                                 [self muteAudioInBuffer:sampleBuffer];
+                                                [self.micInput appendSampleBuffer:sampleBuffer];
                                             }
                                         }
                                         break;
