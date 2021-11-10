@@ -88,7 +88,7 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     self.audioInput = [[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio outputSettings:@{ AVFormatIDKey: @(kAudioFormatMPEG4AAC), AVSampleRateKey: @(44100),  AVChannelLayoutKey: [NSData dataWithBytes: &acl length: sizeof( acl ) ], AVEncoderBitRateKey: @(64000)}];
     self.micInput = [[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio outputSettings:@{ AVFormatIDKey: @(kAudioFormatMPEG4AAC), AVSampleRateKey: @(44100),  AVChannelLayoutKey: [NSData dataWithBytes: &acl length: sizeof( acl ) ], AVEncoderBitRateKey: @(64000)}];
     
-    self.audioInput.preferredVolume = 0.2;
+    self.audioInput.preferredVolume = 1.0;
     self.micInput.preferredVolume = 1.0;
     
     NSDictionary *compressionProperties = @{AVVideoProfileLevelKey         : AVVideoProfileLevelH264HighAutoLevel,
@@ -153,8 +153,10 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
                                             if(self.enableMic && !self.micDisabled){
                                                 [self.micInput appendSampleBuffer:sampleBuffer];
                                             } else {
-                                                [self muteAudioInBuffer:sampleBuffer];
-                                                [self.micInput appendSampleBuffer:sampleBuffer];
+                                                CMSampleBufferRef mutedBuffer = nil;
+                                                CMSampleBufferCreateCopy(kCFAllocatorDefault, sampleBuffer, &mutedBuffer);
+                                                [self muteAudioInBuffer:mutedBuffer];
+                                                [self.micInput appendSampleBuffer:mutedBuffer];
                                             }
                                         }
                                         break;
