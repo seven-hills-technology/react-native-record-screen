@@ -91,7 +91,7 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     self.audioInput.preferredVolume = 1.0;
     self.micInput.preferredVolume = 1.0;
     
-    NSDictionary *compressionProperties = @{AVVideoProfileLevelKey         : AVVideoProfileLevelH264HighAutoLevel,
+    NSDictionary *compressionProperties = @{AVVideoProfileLevelKey         : AVVideoProfileLevelH264MainAutoLevel,
                                             AVVideoH264EntropyModeKey      : AVVideoH264EntropyModeCABAC,
                                             AVVideoAverageBitRateKey       : @(1920 * 1080 * 114),
                                             AVVideoMaxKeyFrameIntervalKey  : @60,
@@ -100,10 +100,10 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     NSLog(@"width: %d", [self adjustMultipleOf2:self.screenWidth]);
     NSLog(@"height: %d", [self adjustMultipleOf2:self.screenHeight]);
     if (@available(iOS 11.0, *)) {
-        NSDictionary *videoSettings = @{AVVideoCompressionPropertiesKey : compressionProperties,
-                                        AVVideoCodecKey                 : AVVideoCodecTypeH264,
-                                        AVVideoWidthKey                 : @([self adjustMultipleOf2:self.screenWidth]),
-                                        AVVideoHeightKey                : @([self adjustMultipleOf2:self.screenHeight])};
+        NSDictionary *videoSettings = @{
+                                        AVVideoCodecKey                 : AVVideoCodecHEVC,
+                                        AVVideoWidthKey                 : @([self adjustMultipleOf2:(self.screenWidth *3)]),
+                                        AVVideoHeightKey                : @([self adjustMultipleOf2:(self.screenHeight *3)])};
 
         self.videoInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo outputSettings:videoSettings];
     } else {
