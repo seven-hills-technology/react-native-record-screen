@@ -1,5 +1,6 @@
 #import "RecordScreen.h"
 #import <React/RCTConvert.h>
+#import "RecordScreen-Swift.h"
 
 @implementation RecordScreen
 
