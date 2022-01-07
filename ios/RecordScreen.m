@@ -184,7 +184,7 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve  reject
     }
 }
 
-RCT_REMAP_METHOD(stopRecording, tx:(NSInteger)tx ty:(NSInteger)ty w:(NSInteger)w h:(NSInteger)h resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_REMAP_METHOD(stopRecording, tx:(double)tx ty:(double)ty w:(double)w h:(double)h resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (@available(iOS 11.0, *)) {
