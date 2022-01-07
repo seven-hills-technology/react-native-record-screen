@@ -102,8 +102,8 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     if (@available(iOS 11.0, *)) {
         NSDictionary *videoSettings = @{
                                         AVVideoCodecKey                 : AVVideoCodecHEVC,
-                                        AVVideoWidthKey                 : @([self adjustMultipleOf2:(self.screenWidth *3)]),
-                                        AVVideoHeightKey                : @([self adjustMultipleOf2:(self.screenHeight *3)])};
+                                        AVVideoWidthKey                 : @([self adjustMultipleOf2:(self.screenWidth *2)]),
+                                        AVVideoHeightKey                : @([self adjustMultipleOf2:(self.screenHeight *2)])};
 
         self.videoInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo outputSettings:videoSettings];
     } else {
@@ -259,12 +259,12 @@ typedef enum {
 
 - (void) cropVideo:(AVAsset *) video cropRectangle:(CGRect) removeCrop output:(NSURL *) outputURL completionHandler:(void(^) (NSString*)) handler
 {
-    CGSize cropRect = CGSizeMake(308*3, 548*3);
+    CGRect cropRect = CGRectMake(19*2,127*2, 308*2, 548*2);
     AVAssetTrack *track = [video tracksWithMediaType:AVMediaTypeVideo][0];
     CGAffineTransform transform = track.preferredTransform;
     CGSize originalSize = track.naturalSize;
     Orientation trackOrientation = [self getOrientation:track];
-    bool cropRectIsPortrait = cropRect.width <= cropRect.height;
+    bool cropRectIsPortrait = cropRect.size.width <= cropRect.size.height;
     
     //get actual display size of video
     CGSize videoSize;
@@ -276,7 +276,7 @@ typedef enum {
     }
     
     AVMutableVideoComposition *videoComposition = [[AVMutableVideoComposition alloc] init];
-    [videoComposition setRenderSize:cropRect];
+    [videoComposition setRenderSize:cropRect.size];
     [videoComposition setFrameDuration:CMTimeMake(1, 30)];
     
     AVMutableVideoCompositionInstruction *instruction = [AVMutableVideoCompositionInstruction videoCompositionInstruction];
@@ -284,7 +284,7 @@ typedef enum {
     
     // shift video to be in the center
     AVMutableVideoCompositionLayerInstruction* transformer = [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:track];
-    CGAffineTransform translation = CGAffineTransformMakeTranslation(- (videoSize.width - cropRect.width)/2, -(videoSize.height - cropRect.height) /2 );
+    CGAffineTransform translation = CGAffineTransformMakeTranslation(- (cropRect.origin.x), -(cropRect.origin.y) );
     CGAffineTransform finalTransform = CGAffineTransformConcat(transform, translation);
 
     [transformer setTransform:finalTransform atTime:kCMTimeZero];
