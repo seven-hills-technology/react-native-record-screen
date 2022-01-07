@@ -27,7 +27,7 @@ type RecordScreenType = {
   startRecording(
     config?: RecordScreenConfigType
   ): Promise<RecordingStartResponse>;
-  stopRecording(): Promise<RecordingResponse>;
+  stopRecording(tx: number, ty: number, width: number, height: number): Promise<RecordingResponse>;
   clean(): Promise<string>;
   toggleMic(): Promise<void>;
 };
@@ -61,9 +61,9 @@ class ReactNativeRecordScreenClass {
     });
   }
 
-  stopRecording(): Promise<RecordingResponse> {
+  stopRecording(tx: number, ty: number, width: number, height: number): Promise<RecordingResponse> {
     return new Promise((resolve, reject) => {
-      RS.stopRecording().then(resolve).catch(reject);
+      RS.stopRecording(tx, ty, width, height).then(resolve).catch(reject);
     });
   }
 
