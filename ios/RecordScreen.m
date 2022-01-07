@@ -61,7 +61,7 @@ RCT_EXPORT_METHOD(setup: (NSDictionary *)config)
     self.micDisabled = true;
 }
 
-RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte:(RCTPromiseRejectBlock)reject)
+RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve  reject:(RCTPromiseRejectBlock)reject)
 {
     self.screenRecorder = [RPScreenRecorder sharedRecorder];
     if (self.screenRecorder.isRecording) {
@@ -184,7 +184,7 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve rejecte
     }
 }
 
-RCT_REMAP_METHOD(stopRecording, resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_REMAP_METHOD(stopRecording, tx:(NSInteger)tx ty:(NSInteger)ty w:(NSInteger)w h:(NSInteger)h resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (@available(iOS 11.0, *)) {
@@ -200,7 +200,7 @@ RCT_REMAP_METHOD(stopRecording, resolver:(RCTPromiseResolveBlock)resolve rejecte
                         UISaveVideoAtPathToSavedPhotosAlbum(self.writer.outputURL.absoluteString, nil, nil, nil);
                         NSLog(@"finishWritingWithCompletionHandler: Recording stopped successfully. Cleaning up... %@", result);
                         AVAsset *videoAsset = [AVAsset assetWithURL:self.writer.outputURL];
-                        [self cropVideo:videoAsset cropRectangle:CGRectMake(100, 300, 300, 600) output:self.writer.outputURL completionHandler:^(NSString* path) {
+                        [self cropVideo:videoAsset cropRectangle:CGRectMake(tx*2, ty*2, w*2, h*2) output:self.writer.outputURL completionHandler:^(NSString* path) {
                             [result setObject:path forKey:@"croppedPath"];
                             resolve([self successResponse:result]);
                             self.audioInput = nil;
@@ -257,9 +257,8 @@ typedef enum {
     }
 }
 
-- (void) cropVideo:(AVAsset *) video cropRectangle:(CGRect) removeCrop output:(NSURL *) outputURL completionHandler:(void(^) (NSString*)) handler
+- (void) cropVideo:(AVAsset *) video cropRectangle:(CGRect) cropRect output:(NSURL *) outputURL completionHandler:(void(^) (NSString*)) handler
 {
-    CGRect cropRect = CGRectMake(19*2,127*2, 308*2, 548*2);
     AVAssetTrack *track = [video tracksWithMediaType:AVMediaTypeVideo][0];
     CGAffineTransform transform = track.preferredTransform;
     CGSize originalSize = track.naturalSize;
