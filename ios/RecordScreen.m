@@ -1,6 +1,5 @@
 #import "RecordScreen.h"
 #import <React/RCTConvert.h>
-#import "RecordScreen-Swift.h"
 
 @implementation RecordScreen
 
@@ -195,20 +194,21 @@ RCT_REMAP_METHOD(stopRecording, resolver:(RCTPromiseResolveBlock)resolve rejecte
                     [self.micInput markAsFinished];
                     [self.videoInput markAsFinished];
                     [self.writer finishWritingWithCompletionHandler:^{
-
-                        printf([[NSFileManager defaultManager] fileExistsAtPath:self.writer.outputURL.path] ? "file exists" : "file doesn't exist");
-
-                        NSDictionary *result = [NSDictionary dictionaryWithObject:self.writer.outputURL.absoluteString forKey:@"outputURL"];
+                        NSMutableDictionary *result = [NSMutableDictionary dictionaryWithObject:self.writer.outputURL.absoluteString forKey:@"outputURL"];
                         
                         
                         UISaveVideoAtPathToSavedPhotosAlbum(self.writer.outputURL.absoluteString, nil, nil, nil);
                         NSLog(@"finishWritingWithCompletionHandler: Recording stopped successfully. Cleaning up... %@", result);
-                        resolve([self successResponse:result]);
-                        self.audioInput = nil;
-                        self.micInput = nil;
-                        self.videoInput = nil;
-                        self.writer = nil;
-                        self.screenRecorder = nil;
+                        AVAsset *videoAsset = [AVAsset assetWithURL:self.writer.outputURL];
+                        [self cropVideo:videoAsset cropRectangle:CGRectMake(100, 300, 300, 600) output:self.writer.outputURL completionHandler:^(NSString* path) {
+                            [result setObject:path forKey:@"croppedPath"];
+                            resolve([self successResponse:result]);
+                            self.audioInput = nil;
+                            self.micInput = nil;
+                            self.videoInput = nil;
+                            self.writer = nil;
+                            self.screenRecorder = nil;
+                        }];
                     }];
                 }
             }];
@@ -234,6 +234,79 @@ RCT_REMAP_METHOD(toggleMic,
                  toggleMicReject: (RCTPromiseRejectBlock) reject)
 {
     self.micDisabled  = !self.micDisabled;
+}
+
+typedef enum {
+    up, down, right, left
+} Orientation;
+
+- (Orientation) getOrientation:(AVAssetTrack *) track
+{
+    CGAffineTransform t = track.preferredTransform;
+    
+    if(t.a == 0 && t.b == 1.0 && t.c == -1.0 && t.d == 0) {             // Portrait
+        return up;
+    } else if(t.a == 0 && t.b == -1.0 && t.c == 1.0 && t.d == 0) {      // PortraitUpsideDown
+        return down;
+    } else if(t.a == 1.0 && t.b == 0 && t.c == 0 && t.d == 1.0) {       // LandscapeRight
+        return right;
+    } else if(t.a == -1.0 && t.b == 0 && t.c == 0 && t.d == -1.0) {     // LandscapeLeft
+        return left;
+    } else {
+        return up;
+    }
+}
+
+- (void) cropVideo:(AVAsset *) video cropRectangle:(CGRect) removeCrop output:(NSURL *) outputURL completionHandler:(void(^) (NSString*)) handler
+{
+    CGSize cropRect = CGSizeMake(308*3, 548*3);
+    AVAssetTrack *track = [video tracksWithMediaType:AVMediaTypeVideo][0];
+    CGAffineTransform transform = track.preferredTransform;
+    CGSize originalSize = track.naturalSize;
+    Orientation trackOrientation = [self getOrientation:track];
+    bool cropRectIsPortrait = cropRect.width <= cropRect.height;
+    
+    //get actual display size of video
+    CGSize videoSize;
+    if ((transform.a == 0 && transform.b == 1 && transform.c == -1 && transform.d == 0) // rotate 90
+        || (transform.a == 0 && transform.b == -1 && transform.c == 1 && transform.d == 0)) { // rotate -90
+        videoSize = CGSizeMake(track.naturalSize.height,track.naturalSize.width);
+    } else {
+        videoSize = track.naturalSize;
+    }
+    
+    AVMutableVideoComposition *videoComposition = [[AVMutableVideoComposition alloc] init];
+    [videoComposition setRenderSize:cropRect];
+    [videoComposition setFrameDuration:CMTimeMake(1, 30)];
+    
+    AVMutableVideoCompositionInstruction *instruction = [AVMutableVideoCompositionInstruction videoCompositionInstruction];
+    instruction.timeRange = CMTimeRangeMake(kCMTimeZero, kCMTimePositiveInfinity);
+    
+    // shift video to be in the center
+    AVMutableVideoCompositionLayerInstruction* transformer = [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:track];
+    CGAffineTransform translation = CGAffineTransformMakeTranslation(- (videoSize.width - cropRect.width)/2, -(videoSize.height - cropRect.height) /2 );
+    CGAffineTransform finalTransform = CGAffineTransformConcat(transform, translation);
+
+    [transformer setTransform:finalTransform atTime:kCMTimeZero];
+    instruction.layerInstructions = [NSArray arrayWithObject:transformer];
+    videoComposition.instructions = [NSArray arrayWithObject: instruction];
+    
+    AVAssetExportSession *exporter = [[AVAssetExportSession alloc] initWithAsset:video presetName:AVAssetExportPresetHighestQuality];
+    [exporter setVideoComposition:videoComposition];
+    NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"export/video-cropped2.mp4"];
+    NSFileManager *defaultManager = [NSFileManager defaultManager];
+    [defaultManager createDirectoryAtPath:path withIntermediateDirectories:TRUE attributes:nil error:nil];
+    if ([defaultManager fileExistsAtPath:path]) {
+        [defaultManager removeItemAtPath:path error:nil];
+    }
+    NSURL *plsWork = [NSURL fileURLWithPath:path isDirectory:FALSE];
+    [exporter setOutputURL: plsWork];
+    [exporter setOutputFileType:AVFileTypeMPEG4];
+    
+    [exporter exportAsynchronouslyWithCompletionHandler:^(void) {
+        NSLog(@"Export Status %d %@", exporter.status, exporter.error);
+        handler(plsWork.path);
+    }];
 }
 
 @end
