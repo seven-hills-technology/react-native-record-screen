@@ -290,9 +290,9 @@ typedef enum {
     instruction.layerInstructions = [NSArray arrayWithObject:transformer];
     videoComposition.instructions = [NSArray arrayWithObject: instruction];
     
-    AVAssetExportSession *exporter = [[AVAssetExportSession alloc] initWithAsset:video presetName:AVAssetExportPresetHighestQuality];
+    AVAssetExportSession *exporter = [[AVAssetExportSession alloc] initWithAsset:video presetName:AVAssetExportPreset1280x720];
     [exporter setVideoComposition:videoComposition];
-    NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"export/video-cropped2.mp4"];
+    NSString *path = [NSTemporaryDirectory() stringByAppendingString:[NSString stringWithFormat:@"export/%@.mp4", [[NSUUID UUID] UUIDString]]];
     NSFileManager *defaultManager = [NSFileManager defaultManager];
     [defaultManager createDirectoryAtPath:path withIntermediateDirectories:TRUE attributes:nil error:nil];
     if ([defaultManager fileExistsAtPath:path]) {
