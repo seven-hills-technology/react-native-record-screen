@@ -58,7 +58,7 @@ RCT_EXPORT_METHOD(setup: (NSDictionary *)config)
     self.screenWidth = [RCTConvert int: config[@"width"]];
     self.screenHeight = [RCTConvert int: config[@"height"]];
     self.enableMic = [RCTConvert BOOL: config[@"mic"]];
-    self.micDisabled = true;
+    self.micDisabled = false;
 }
 
 RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve  reject:(RCTPromiseRejectBlock)reject)
