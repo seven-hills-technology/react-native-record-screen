@@ -187,7 +187,8 @@ RCT_REMAP_METHOD(startRecording, resolve:(RCTPromiseResolveBlock)resolve  reject
 RCT_REMAP_METHOD(stopRecording, tx:(double)tx ty:(double)ty w:(double)w h:(double)h resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (@available(iOS 11.0, *)) {
+        if (@available(iOS 11.0, *) && [[RPScreenRecorder sharedRecorder] isRecording]) {
+            
             [[RPScreenRecorder sharedRecorder] stopCaptureWithHandler:^(NSError * _Nullable error) {
                 if (!error) {
                     [self.audioInput markAsFinished];
@@ -214,6 +215,7 @@ RCT_REMAP_METHOD(stopRecording, tx:(double)tx ty:(double)ty w:(double)w h:(doubl
             }];
         } else {
             // Fallback on earlier versions
+            resolve([self successResponse:nil]);
         }
     });
 }
